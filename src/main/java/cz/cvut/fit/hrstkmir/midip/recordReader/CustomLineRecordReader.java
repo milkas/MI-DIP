@@ -36,7 +36,7 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 
 	private static final Log LOG = LogFactory.getLog(CustomLineRecordReader.class);
 	java.util.Date date= new java.util.Date();
-	public File absolute = new File("/home/user/metadata/file-"+new Timestamp(date.getTime())+".txt");
+	public File absolute = new File("/home/mira/metadata/file-"+new Timestamp(date.getTime())+".txt");
 	FileWriter fw;
 	BufferedWriter bw;
 	public long rc = 0;
