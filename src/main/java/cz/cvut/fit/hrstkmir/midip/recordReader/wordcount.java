@@ -37,6 +37,6 @@ public class wordcount extends Configured implements Tool
 		FileOutputFormat.setOutputPath((JobConf) job.getConfiguration(), new Path(arg0[1]));
 		job.submit();
 		int rc = (job.waitForCompletion(true) ? 1 : 0);
-		return rc;
+		return rc;            
 	}
 }

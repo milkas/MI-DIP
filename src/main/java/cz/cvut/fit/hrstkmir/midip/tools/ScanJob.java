@@ -1,0 +1,38 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cz.cvut.fit.hrstkmir.midip.tools;
+
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.util.Bytes;
+
+public class ScanJob {
+
+    public static void main(String[] args) throws Exception {
+
+        HBaseConfiguration conf = new HBaseConfiguration();
+        HTable htable = new HTable(conf, "summary_user");
+
+        Scan scan = new Scan();
+        ResultScanner scanner = htable.getScanner(scan);
+        Result r;
+        while (((r = scanner.next()) != null)) {
+            //ImmutableBytesWritable b = r.getBytes();
+            byte[] key = r.getRow();
+            int userId = Bytes.toInt(key);
+            byte[] totalValue = r.getValue(Bytes.toBytes("details"), Bytes.toBytes("total"));
+            int count = Bytes.toInt(totalValue);
+
+            System.out.println("key: " + userId+ ",  count: " + count);
+        }
+        scanner.close();
+        htable.close();
+    }
+}

@@ -24,8 +24,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
-public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
-{
+public class CustomLineRecordReader extends RecordReader<LongWritable, Text> implements java.io.Closeable{
 	private long start;
 	private long pos;
 	private long end;
@@ -37,7 +36,7 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 	private static final Log LOG = LogFactory.getLog(CustomLineRecordReader.class);
 	java.util.Date date= new java.util.Date();
 	public File absolute = new File("/home/mira/metadata/file-"+new Timestamp(date.getTime())+".txt");
-	FileWriter fw;
+        FileWriter fw;
 	BufferedWriter bw;
 	public long rc = 0;
 	public HashMap<String, List<Long>> map = new HashMap<String, List<Long>>();
@@ -131,6 +130,8 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 			bw.newLine();
 			bw.write("offset: "+pos);
 			bw.newLine();
+                        bw.write("rc: "+rc);
+			bw.newLine();
 			key = null;
 			value = null;
 			return false;
@@ -151,7 +152,7 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 	 */
 	@Override
 	public LongWritable getCurrentKey() throws IOException, InterruptedException
-	{
+	{              
 		return key;
 	}
 
@@ -159,6 +160,9 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 	 * From Design Pattern, O'Reilly... This methods are used by the framework
 	 * to give generated key/value pairs to an implementation of Mapper. Be sure
 	 * to reuse the objects returned by these methods if at all possible!
+     * @return 
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
 	 */
 	@Override
 	public Text getCurrentValue() throws IOException, InterruptedException
@@ -170,6 +174,9 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 	 * From Design Pattern, O'Reilly... Like the corresponding method of the
 	 * InputFormat class, this is an optional method used by the framework for
 	 * metrics gathering.
+     * @return 
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
 	 */
 	@Override
 	public float getProgress() throws IOException, InterruptedException
@@ -194,13 +201,17 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text>
 		if (in != null)
 		{
 			in.close();	
-			
 			for(Map.Entry<String, List<Long>> entry : map.entrySet())
-			{
-				bw.write("key: "+entry.getKey()+" ");
+			{       
+                                //improvizace pro pripad ze v textu je strednik, ktery by pak rozhodil parsovani
+                                String key = entry.getKey();
+                                if(key.contains(";"))
+                                    key.replace(";", "semicolon");
+                                    
+				bw.write(entry.getKey()+";");  //lip se to parsuje...
 				tmpList = (List<Long>) entry.getValue();
-				bw.write("size: "+tmpList.size()+" ");
-				bw.write("counters: ");
+				bw.write(tmpList.size()+";");
+				
 				Iterator<Long> iterator = tmpList.iterator();
 				while (iterator.hasNext())
 				{
