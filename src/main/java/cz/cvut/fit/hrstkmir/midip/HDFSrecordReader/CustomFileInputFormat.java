@@ -1,4 +1,4 @@
-package cz.cvut.fit.hrstkmir.midip.recordReader;
+package cz.cvut.fit.hrstkmir.midip.HDFSrecordReader;
 
 import java.io.IOException;
 import org.apache.hadoop.io.LongWritable;

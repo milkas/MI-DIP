@@ -24,14 +24,11 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.metrics.ScanMetrics;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.DataInputBuffer;
-import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.metrics.util.MetricsTimeVaryingLong;
 import org.apache.hadoop.util.StringUtils;
 
 /**
@@ -61,8 +58,8 @@ public class MyTableRecordReader extends TableRecordReader {
     FileWriter fw;
     BufferedWriter bw;
     public long rc = 0;
-    public HashMap<String, List<Long>> map = new HashMap<>();
-    public List<Long> tmpList;
+    public HashMap<String, List<String>> map = new HashMap<>();
+    public List<String> tmpList;
 
     public MyTableRecordReader() throws IOException {
         fw = new FileWriter(absolute.getAbsoluteFile());
@@ -126,7 +123,7 @@ public class MyTableRecordReader extends TableRecordReader {
     @Override
     public void close() {
         try {
-            for(Map.Entry<String, List<Long>> entry : map.entrySet())
+            for(Map.Entry<String, List<String>> entry : map.entrySet())
             {
              
                     //improvizace pro pripad ze v textu je strednik, ktery by pak rozhodil parsovani
@@ -135,10 +132,10 @@ public class MyTableRecordReader extends TableRecordReader {
                         key2.replace(";", "semicolon");
                     
                     bw.write(entry.getKey()+";");  //lip se to parsuje...
-                    tmpList = (List<Long>) entry.getValue();
+                    tmpList = (List<String>) entry.getValue();
                     bw.write(tmpList.size()+";");
                     
-                    Iterator<Long> iterator = tmpList.iterator();
+                    Iterator<String> iterator = tmpList.iterator();
                     while (iterator.hasNext())
                     {
                         bw.write(iterator.next()+" ");
@@ -238,21 +235,21 @@ public class MyTableRecordReader extends TableRecordReader {
       value = scanner.next();
     }
     if (value != null && value.size() > 0) {
-      key.set(value.getRow());
+      key.set(value.getValue(Bytes.toBytes("osoba"), Bytes.toBytes("kraj")));
       rc++;
+      String rowID = new String(value.getRow());
                                     
-                                ImmutableBytesWritable userKey = new ImmutableBytesWritable(key.copyBytes(), 0, Bytes.SIZEOF_INT);
-                                String tmp = userKey.toString();
+                                String tmp = new String (key.copyBytes());
      				if(map.containsKey(tmp))
 				{
 					tmpList = map.get(tmp);
-					tmpList.add(rc);
+					tmpList.add(rowID);
 					map.put(tmp, tmpList);
 				}
 				else
 				{
-					tmpList = new ArrayList<Long>();
-					tmpList.add(rc);
+					tmpList = new ArrayList<String>();
+					tmpList.add(rowID);
 					map.put(tmp, tmpList);		
 				} 
       
@@ -290,20 +287,5 @@ public class MyTableRecordReader extends TableRecordReader {
 
     DataInputBuffer in = new DataInputBuffer();
     in.reset(serializedMetrics, 0, serializedMetrics.length);
-//    ScanMetrics scanMetrics = new ScanMetrics();
-//    scanMetrics.
-//            readFields(in);
-//    MetricsTimeVaryingLong[] mlvs =
-//      scanMetrics.getMetricsTimeVaryingLongArray();
-//
-//    try {
-//      for (MetricsTimeVaryingLong mlv : mlvs) {
-//        Counter ct = (Counter)this.getCounter.invoke(context,
-//          HBASE_COUNTER_GROUP_NAME, mlv.getName());
-//        ct.increment(mlv.getCurrentIntervalValue());
-//      }
-//    } catch (Exception e) {
-//      LOG.debug("can't update counter." + StringUtils.stringifyException(e));
-//    }
   }
 }

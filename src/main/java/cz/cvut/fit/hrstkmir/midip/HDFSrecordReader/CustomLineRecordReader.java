@@ -1,4 +1,4 @@
-package cz.cvut.fit.hrstkmir.midip.recordReader;
+package cz.cvut.fit.hrstkmir.midip.HDFSrecordReader;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -119,7 +119,6 @@ public class CustomLineRecordReader extends RecordReader<LongWritable, Text> imp
 			// Line is too long
 			// Try again with position = position + line offset,
 			// i.e. ignore line and go to next one
-			// TODO: Shouldn't it be LOG.error instead ??
 			LOG.info("Skipped line of size " + newSize + " at pos " + (pos - newSize));
 		}
 

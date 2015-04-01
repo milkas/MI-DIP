@@ -1,4 +1,4 @@
-package cz.cvut.fit.hrstkmir.midip.recordReader;
+package cz.cvut.fit.hrstkmir.midip.HDFSrecordReader;
 
 
 import org.apache.hadoop.conf.Configuration;
@@ -15,12 +15,12 @@ import org.apache.hadoop.mapreduce.lib.reduce.IntSumReducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class wordcount extends Configured implements Tool
+public class JobRunner extends Configured implements Tool
 {
 	public static void main(String[] args) throws Exception
 	{
 		Configuration configuration = new Configuration();
-		ToolRunner.run(configuration, new wordcount(), args);
+		ToolRunner.run(configuration, new JobRunner(), args);
 	}
 
 	@Override
@@ -30,7 +30,7 @@ public class wordcount extends Configured implements Tool
 		job.setInputFormatClass(CustomFileInputFormat.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
-		job.setJarByClass(wordcount.class);
+		job.setJarByClass(JobRunner.class);
 		job.setMapperClass(TokenCounterMapper.class);
 		job.setReducerClass(IntSumReducer.class);
 		FileInputFormat.addInputPath((JobConf) job.getConfiguration(), new Path(arg0[0]));
