@@ -10,13 +10,13 @@ import java.io.IOException;
  */
 public class RunRepartitioning {
     public static void main(String[] args) throws IOException {
-        String originalDB = "lide2";
-        String newDB = "lide3";
+        String originalDB = "lide-sluzby2";
+        String newDB = "lide-sluzby-new";
+        int numberOfPartitions = 4;
         
         HyperGraph H = new HyperGraph();
         H.createGraph("/home/mira/metadata/job/metadata.txt");
-        Repartitioning.Repartitioning(MinCut.MinCut(H.get()), originalDB, newDB);
-    
+        Repartitioning.Repartitioning(MinCut.MinCut(H.get(),numberOfPartitions), originalDB, newDB);
     
     }
     

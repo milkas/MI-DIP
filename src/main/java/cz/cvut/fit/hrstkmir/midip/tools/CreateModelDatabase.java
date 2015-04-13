@@ -329,11 +329,20 @@ public class CreateModelDatabase {
         }
     }
 
+    public static String generateService(int services) {
+        String[] servicesArray = new String[services];
+        for (int i = 0; i < services; i++) {
+            servicesArray[i] = "sluzba_cislo_" + i + ".";
+        }
+            return servicesArray[randBetween(0, services-1)];
+    }
+
     public static void main(String[] args) throws IOException {
         List<Person> Person = new ArrayList<>();
 
-        int setMaxPopulationInCity = 10;
-        int setMaxGeneratedRows = 100;
+        int numOfServices = 10;  //pocet sloupcu se sluzbami
+        int setMaxPopulationInCity = 1000000000;
+        int setMaxGeneratedRows = 1000000000;
 
         int maxPopulationInCity = 0;
         int maxGeneratedRows = 0;
@@ -347,26 +356,28 @@ public class CreateModelDatabase {
         model.makeListOfFemaleSurnames();
 
         HBaseConfiguration hbaseConfig = new HBaseConfiguration();
-        try (HTable htable = new HTable(hbaseConfig, "lide2")) {
+        try (HTable htable = new HTable(hbaseConfig, "lide-sluzby")) {
             htable.setAutoFlush(false);
             htable.setWriteBufferSize(1024 * 1024 * 12);
-            
+
+            int counter = 0;
             for (City city : cityList) {
+                
                 for (int i = 0; i < city.getPopulation(); i++) {
                     Person person = new Person();
                     person.setID(generateID());
                     person.setResidence(city.getResidence());
                     person.setDistrict(city.getDistrict());
                     person.setCountry(city.getCountry());
-                    
+
                     Random randomno = new Random();
                     boolean male = randomno.nextBoolean();
-                    
+
                     if (male) {
                         person.setName(getRandomMaleName());
                         person.setSurname(getRandomMaleSurname());
                         person.setSex("male");
-                        
+
                     } else {
                         person.setName(getRandomFemaleName());
                         person.setSurname(getRandomFemaleSurname());
@@ -374,9 +385,10 @@ public class CreateModelDatabase {
                         int monthFemale = Integer.parseInt(String.valueOf(person.getID().charAt(2))) + 5;
                         person.setID(person.getID().substring(0, 2) + monthFemale + person.getID().substring(3));
                     }
-                    
-                    person.printPerson();
-                    
+
+                    //person.printPerson();
+
+                    //System.out.print("Záznam No:" + counter++ + " --- ");
                     Put put = new Put(Bytes.toBytes(person.getID()));
                     put.add(Bytes.toBytes("osoba"), Bytes.toBytes("jmeno"), Bytes.toBytes(person.getName()));
                     put.add(Bytes.toBytes("osoba"), Bytes.toBytes("prijmeni"), Bytes.toBytes(person.getSurname()));
@@ -384,19 +396,29 @@ public class CreateModelDatabase {
                     put.add(Bytes.toBytes("osoba"), Bytes.toBytes("obec"), Bytes.toBytes(person.getResidence()));
                     put.add(Bytes.toBytes("osoba"), Bytes.toBytes("okres"), Bytes.toBytes(person.getDistrict()));
                     put.add(Bytes.toBytes("osoba"), Bytes.toBytes("kraj"), Bytes.toBytes(person.getCountry()));
+
+                    for (int j = 0; j < numOfServices; j++) {
+             
+                        
+                        boolean isEmpty = (randBetween(0, 100)>((j/(double)numOfServices)*100));
+                        
+                        if (!isEmpty)
+                        put.add(Bytes.toBytes("sluzba"), Bytes.toBytes("rok"+ (2000+j)), Bytes.toBytes(generateService(10)));
+                    }
+
                     htable.put(put);
                     maxPopulationInCity++;
                     maxGeneratedRows++;
                     if (maxPopulationInCity > setMaxPopulationInCity) {
                         break;
                     }
-                    
+
                 }
                 if (maxGeneratedRows > setMaxGeneratedRows) {
                     break;
                 }
             }
-            
+
             htable.flushCommits();
         }
         System.out.println("done");
